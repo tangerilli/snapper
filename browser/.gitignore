@@ -1,0 +1,4 @@
+node_modules/
+lib/snapper.js
+lib/snapper.min.js
+lib/snapper.js.map
