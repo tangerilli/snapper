@@ -49,7 +49,7 @@ func PrintPdfFromHtml(chromeUrl string, html string) ([]byte, error) {
 
 	defer conn.Close() // Leaving connections open will leak memory.
 	c := cdp.NewClient(conn)
-	log.Println("Connected")
+	log.Println("Connected to Chrome")
 
 	domContent, err := c.Page.LoadEventFired(ctx)
 	if err != nil {

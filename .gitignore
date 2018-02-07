@@ -1,3 +1,7 @@
+*.pyc
+
 server/pkg
 server/src/github.com
 server/src/golang.org
+server/env
+server/bin
