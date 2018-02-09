@@ -1,26 +1,43 @@
 package snapper
 
 import (
+	"io"
+	"log"
 	"os/exec"
+	"path/filepath"
 	"runtime"
 )
 
-// TODO: add some utility functions for starting and stopping chrome
-// TODO: Use this from standalone.go depending on CLI options
-
-func LaunchChrome(path *string) *exec.Cmd {
+func LaunchChrome(path *string) (*exec.Cmd, io.ReadCloser, error) {
 	var chromePath string
+	args := []string{"--headless", "--remote-debugging-port=9222"}
 	if path == nil || *path == "" {
-		// TODO: Have a different default path depending on linux or mac
 		if runtime.GOOS == "darwin" {
 			chromePath = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
 		} else {
-			chromePath = "./headless-chrome/headless_shell"
+			var err error
+			chromePath, err = filepath.Abs("./headless-chrome/headless_shell")
+			if err != nil {
+				log.Printf("Could not resolve chrome path: %s\n", err)
+				return nil, nil, err
+			}
+			args = append(args, "--window-size=1280x1696", "--no-sandbox", "--user-data-dir=/tmp/user-data",
+				"--homedir=/tmp", "--disk-cache-dir=/tmp/cache-dir", "--data-path=/tmp/data-path", "--single-process",
+				"--disable-gpu", "--enable-logging")
 		}
 	} else {
 		chromePath = *path
 	}
-	cmd := exec.Command(chromePath, "--headless", "--remote-debugging-port=9222")
-	cmd.Start()
-	return cmd
+	log.Printf("Launching %s %s\n", chromePath, args)
+	cmd := exec.Command(chromePath, args...)
+
+	stdout, _ := cmd.StdoutPipe()
+
+	err := cmd.Start()
+	if err != nil {
+		log.Printf("Error starting chrome: %s\n", err)
+		return nil, nil, err
+	}
+
+	return cmd, stdout, nil
 }
