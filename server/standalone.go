@@ -33,7 +33,7 @@ func PdfHTMLHandler(w http.ResponseWriter, r *http.Request) {
 	data, err := snapper.PrintPdfFromHtml("http://localhost:9222", *input.Html)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		log.Println("Error generating PDF")
+		log.Printf("Error generating PDF: %s\n", err)
 		fmt.Fprintf(w, "Error generating PDF")
 		return
 	}
@@ -71,7 +71,10 @@ func main() {
 	flag.Parse()
 
 	if *launchChrome {
-		snapper.LaunchChrome(chromePath)
+		_, err := snapper.LaunchChrome(chromePath)
+		if err != nil {
+			log.Fatalf("Could not launch chrome: %s", err)
+		}
 	}
 
 	chromeDebugUrl = *chromeDebugUrlArg
