@@ -41,10 +41,28 @@ func PrintPdfFromHtml(chromeUrl string, html string) ([]byte, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 
-	conn, err := connectToChrome(chromeUrl, ctx, len(html))
-	if err != nil {
-		log.Println("Error connecting to chrome")
-		return nil, err
+	retries := 5
+	sleepTimeInMs := 100
+
+	var conn *rpcc.Conn
+	for true {
+		var err error
+		conn, err = connectToChrome(chromeUrl, ctx, len(html))
+
+		if err == nil {
+			break
+		}
+
+		if retries == 0 {
+			log.Println("Error connecting to chrome")
+			return nil, err
+		}
+
+		log.Printf("Error connecting to chrome, sleeping for %dms\n", sleepTimeInMs)
+		time.Sleep(time.Duration(sleepTimeInMs) * time.Millisecond)
+
+		retries--
+		sleepTimeInMs *= 2
 	}
 
 	defer conn.Close() // Leaving connections open will leak memory.
