@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Canvas PDF Export example</title>
+    <script type="text/javascript" src="../lib/snapper.js"></script>
+    <script type="text/javascript">
+        function draw(id, val) {
+            var ctx = document.getElementById(id).getContext('2d');
+            for (var i = 0; i < 6; i++) {
+                for (var j = 0; j < 6; j++) {
+                    ctx.fillStyle = 'rgb(' + Math.floor(255 - val * i) + ', ' +
+                        Math.floor(255 - val * j) + ', 0)';
+                    ctx.fillRect(j * 25, i * 25, 25, 25);
+                }
+            }
+        }
+        window.onload = function() {
+            draw('canvas1', 42.5);
+            draw('canvas2', 120);
+        };
+    </script>
+</head>
+<body style="background-color: lightblue;">
+    <h1 style="text-align: centre; color: green;">Canvas PDF Export example</h1>
+    <p>This is an example of creating a PDF from a webpage which includes a canvas element. Normally, when you grab the document HTML for a page which includes a canvas element, you don't get any of the canvas data. To get around this, snapper will convert the canvas to an image first.</p>
+    <canvas id="canvas1" width="150" height="150"></canvas>
+    <canvas id="canvas2" width="150" height="150"></canvas>
+    <div>
+        <button onclick="snapper.convertPageToPdf();">Print PDF</button>
+    </div>
+</body>
+</html>

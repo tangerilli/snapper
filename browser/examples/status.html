@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>PDF Export with status</title>
+    <script type="text/javascript" src="../lib/snapper.js"></script>
+    <script type="text/javascript">
+        function toggleStatus() {
+            var loading_block = document.getElementById('loading');
+            loading_block.style.display = loading_block.style.display ? "" : "none";
+            var button = document.getElementById('printButton');
+            button.style.display = button.style.display ? "": "none";            
+        }
+
+        function startPdfDownload() {
+            snapper.convertPageToPdf({
+                save: {
+                    filename: "pageWithStatus.pdf",
+                    successCallback: function() {
+                        toggleStatus();
+                    }
+                },
+                errorHandler: function() {
+                    alert("Error generating PDF!");
+                }
+            });
+            toggleStatus();
+        }
+    </script>
+</head>
+<body>
+    <h1 style="text-align: centre; color: green;">PDF Export with status</h1>
+    <p>This is an example of generating a PDF from a page and displaying some status</p>
+    <img src="https://i.pinimg.com/originals/89/64/e2/8964e2f6e086b89cd7656e7f4698d955.jpg" />
+    <div>
+        <button onclick="startPdfDownload();" id="printButton">Print PDF</button>
+        <div id="loading" style="display: none; font-size: 12px;">
+            <img src="assets/loading_spinner.gif" style="width: 32px; height: 32px; margin-bottom: -10px;" />
+            Downloading PDF...
+        </div>
+    </div>
+</body>
+</html>

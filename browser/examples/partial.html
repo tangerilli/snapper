@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Canvas PDF Export example</title>
+    <script type="text/javascript" src="../lib/snapper.js"></script>
+    <script type="text/javascript">
+        function draw(id, val) {
+            var ctx = document.getElementById(id).getContext('2d');
+            for (var i = 0; i < 6; i++) {
+                for (var j = 0; j < 6; j++) {
+                    ctx.fillStyle = 'rgb(' + Math.floor(255 - val * i) + ', ' +
+                        Math.floor(255 - val * j) + ', 0)';
+                    ctx.fillRect(j * 25, i * 25, 25, 25);
+                }
+            }
+        }
+        window.onload = function() {
+            draw('canvas1', 42.5);
+            draw('canvas2', 120);
+        };
+
+        function pdf() {
+            var doc = snapper.getDocumentWithInlinedCanvases();
+            var data = doc.getElementById('printSection');
+            snapper.convertHtmlToPdf(data.outerHTML);
+        }
+    </script>
+</head>
+<body style="background-color: lightblue;">
+    <h1 style="text-align: centre; color: green;">Canvas PDF Export example</h1>
+    <div id="printSection">
+        <p>This is an example of creating a PDF from <em>part</em> of a webpage.</p>
+        <canvas id="canvas1" width="150" height="150"></canvas>
+        <canvas id="canvas2" width="150" height="150"></canvas>
+    </div>
+    <div>
+        <button onclick="pdf()">Print PDF</button>
+    </div>
+</body>
+</html>

@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dynamic PDF Export example</title>
+    <script type="text/javascript" src="../lib/snapper.js"></script>
+    <script type="text/javascript">
+        function draw(canvas, val) {
+            var ctx = canvas.getContext('2d');
+            for (var i = 0; i < 6; i++) {
+                for (var j = 0; j < 6; j++) {
+                    ctx.fillStyle = 'rgb(' + Math.floor(255 - val * i) + ', ' +
+                        Math.floor(255 - val * j) + ', 0)';
+                    ctx.fillRect(j * 25, i * 25, 25, 25);
+                }
+            }
+        }
+
+
+        function generatePDF() {
+            var doc = document.implementation.createHTMLDocument("Dynamically generated document");
+            var body = doc.body;
+            var h1 = doc.createElement('h1');
+            h1.innerText = 'Dynamically generated content';
+            body.appendChild(h1);
+            var p = doc.createElement('p');
+            p.innerText = 'This content was generated dynamically and never displayed to the user.'
+            body.appendChild(p);
+            var img = doc.createElement('img');
+            img.src = 'http://www.viralnovelty.net/wp-content/uploads/2016/11/t%C3%A9l%C3%A9chargement.jpg';
+            body.appendChild(img);
+            var canvas = doc.createElement('canvas');
+            canvas.width = 150;
+            canvas.height = 150;
+            draw(canvas, 42.5);
+            body.appendChild(canvas);
+            
+            snapper.inlineCanvases(doc);
+            snapper.convertHtmlToPdf(doc.documentElement.innerHTML);
+        }
+    </script>
+</head>
+<body style="background-color: lightblue;">
+    <h1 style="text-align: centre; color: green;">Dynamic PDF Export example</h1>
+    <p>This is a simple example of creating a PDF from content that is not actually shown on screen</p>
+    <img src="https://i.pinimg.com/originals/89/64/e2/8964e2f6e086b89cd7656e7f4698d955.jpg" />
+    <div>
+        <button onclick="generatePDF();">Print PDF</button>
+    </div>
+</body>
+</html>
