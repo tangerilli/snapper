@@ -107,6 +107,11 @@ func PrintPdfFromHtml(chromeUrl string, html string) ([]byte, error) {
 
 	// TODO: set print args
 	pdfArgs := page.NewPrintToPDFArgs()
+	pdfArgs.SetPrintBackground(true)
+	pdfArgs.SetMarginTop(0)
+	pdfArgs.SetMarginBottom(0)
+	pdfArgs.SetMarginRight(0)
+	pdfArgs.SetMarginLeft(0)
 	result, err := c.Page.PrintToPDF(ctx, pdfArgs)
 
 	encodedData := base64.StdEncoding.EncodeToString([]byte(result.Data))

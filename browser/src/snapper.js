@@ -152,14 +152,16 @@ function convertHtmlToPdf(html, options) {
 
     xhr.onload = function (e) {
         if (this.status === 200) {
+            const response = this.response;
+
             if (options.base64DataCallback !== undefined) {
-                options.base64DataCallback(this.responseText);
+                options.base64DataCallback(response.pdfData);
             } else {
                 const saveOptions = options.save || {};
                 const filename = saveOptions.filename || 'page.pdf';
 
                 decodeAndSaveBase64Pdf(
-                    this.responseText,
+                    response.pdfData,
                     filename,
                     saveOptions.successCallback,
                     options.errorHandler
@@ -178,9 +180,10 @@ function convertHtmlToPdf(html, options) {
         }
     };
 
-    const url = options.printServiceURL || 'https://p5vn037bmb.execute-api.us-west-2.amazonaws.com/dev/chrome';
+    const url = options.printServiceURL || 'https://41p3bpmy7l.execute-api.us-west-1.amazonaws.com/v1/pdfprinter';
 
     xhr.open('POST', url);
+    xhr.responseType = 'json';
     xhr.setRequestHeader('content-type', 'application/json');
     xhr.send(data);
 }
