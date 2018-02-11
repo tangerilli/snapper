@@ -11,21 +11,13 @@ import (
 	"snapper"
 )
 
-type HTMLPdfInput struct {
-	Html *string `json:"html"`
-}
-
-type Response struct {
-	PdfData string `json:"pdfData"`
-}
-
 // bad global variable, bad
 var chromeDebugUrl string
 
 func PdfHTMLHandler(w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
-	var input HTMLPdfInput
-	err := decoder.Decode(&input)
+	var request snapper.Request
+	err := decoder.Decode(&request)
 	defer r.Body.Close()
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -34,7 +26,7 @@ func PdfHTMLHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	data, err := snapper.PrintPdfFromHtml(chromeDebugUrl, *input.Html)
+	data, err := snapper.PrintPdfFromHtml(chromeDebugUrl, *request.Html)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		log.Printf("Error generating PDF: %s\n", err)
@@ -42,7 +34,7 @@ func PdfHTMLHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response := Response{string(data)}
+	response := snapper.Response{string(data)}
 	json, err := json.Marshal(response)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
