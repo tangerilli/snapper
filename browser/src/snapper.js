@@ -180,7 +180,7 @@ function convertHtmlToPdf(html, options) {
         }
     };
 
-    const url = options.printServiceURL || 'https://41p3bpmy7l.execute-api.us-west-1.amazonaws.com/v1/pdfprinter';
+    const url = options.printServiceURL || 'http://localhost:8088/pdf/html/';
 
     xhr.open('POST', url);
     xhr.responseType = 'json';
@@ -200,7 +200,7 @@ options = {
         filename: 'page.pdf',
         successCallback: function() {}
     },
-    printServiceURL: 'https://p5vn037bmb.execute-api.us-west-2.amazonaws.com/dev/chrome',
+    printServiceURL: 'http://localhost:8088/pdf/html/',
     inlineCanvas: true,
     inlineBlobs: true,
     preprocessor: function(html) { return html; }
