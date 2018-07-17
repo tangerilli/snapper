@@ -19,8 +19,19 @@ func Handler(request snapper.Request) (snapper.Response, error) {
 		log.Printf("Error launching chrome: %s", err)
 		return snapper.Response{""}, err
 	}
+	chromeDebugUrl := "http://localhost:9222"
 
-	data, err := snapper.PrintPdfFromHtml("http://localhost:9222", *request.Html)
+	var data []byte
+	options := request.Options
+	if options == nil {
+		options = new(snapper.Options)
+	}
+	snapper.SetDefaultOptions(options)
+	if request.Html != nil {
+		data, err = snapper.PrintPdfFromHtml(chromeDebugUrl, options, *request.Html)
+	} else {
+		data, err = snapper.PrintPdfFromUrl(chromeDebugUrl, options, *request.Url)
+	}
 	if err != nil {
 		log.Println("Error generating PDF")
 		return snapper.Response{""}, err

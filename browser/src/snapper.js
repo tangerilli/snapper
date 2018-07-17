@@ -1,3 +1,9 @@
+import {version} from '../package.json';
+
+let defaults = {
+    printServiceURL: 'http://localhost:8088/'
+};
+
 function decodeAndSaveBase64Pdf(base64Data, filename, successCallback, errorCallback) {
     // Create a new Blob object using the base64-encoded data
     const byteCharacters = atob(base64Data);
@@ -35,8 +41,7 @@ function inlineCanvases(doc, shadowDoc) {
     shadowDoc = shadowDoc || doc;
 
     // Replace any canvas elements with images because the canvas data won't be included in the HTML
-    // and therefore won't be printed.  Doing it inline like this is a bit destructive and therefore sort of
-    // bad if the user wants to keep using the page
+    // and therefore won't be printed.
     const canvases = doc.getElementsByTagName('canvas');
     const shadowCanvases = shadowDoc.getElementsByTagName('canvas');
 
@@ -138,16 +143,7 @@ function getDocumentWithInlinedCanvases() {
     return shadowDoc;
 }
 
-function convertHtmlToPdf(html, options) {
-    options = options || {};
-
-    console.log(html);
-    const data = JSON.stringify({
-        'html': html,
-        'printParameters': options.printParameters
-    });
-
-    // Send everything off to AWS for printing
+function printToPdf(url, params, options) {
     const xhr = new XMLHttpRequest();
 
     xhr.onload = function (e) {
@@ -180,7 +176,64 @@ function convertHtmlToPdf(html, options) {
         }
     };
 
-    const url = options.printServiceURL || 'http://localhost:8088/pdf/html/';
+    xhr.open('POST', url);
+    xhr.responseType = 'json';
+    xhr.setRequestHeader('content-type', 'application/json');
+    xhr.send(params);
+}
+
+function convertUrlToPdf(url, options) {
+    options = options || {};
+
+    const data = JSON.stringify({
+        'url': url,
+        'printParameters': options.printParameters
+    });
+
+    printToPdf(options.printServiceURL || defaults.printServiceURL, data, options);
+}
+
+function convertHtmlToPdf(html, options) {
+    options = options || {};
+
+    const data = JSON.stringify({
+        'html': html,
+        'printParameters': options.printParameters
+    });
+
+    const xhr = new XMLHttpRequest();
+
+    xhr.onload = function (e) {
+        if (this.status === 200) {
+            const response = this.response;
+
+            if (options.base64DataCallback !== undefined) {
+                options.base64DataCallback(response.pdfData);
+            } else {
+                const saveOptions = options.save || {};
+                const filename = saveOptions.filename || 'page.pdf';
+
+                decodeAndSaveBase64Pdf(
+                    response.pdfData,
+                    filename,
+                    saveOptions.successCallback,
+                    options.errorHandler
+                );
+            }
+        } else {
+            if (options.errorHandler !== undefined) {
+                options.errorHandler('Error generating PDF', e);
+            }
+        }
+    };
+
+    xhr.onerror = (e) => {
+        if (options.errorHandler) {
+            options.errorHandler('Error generating PDF', e);
+        }
+    };
+
+    const url = options.printServiceURL || defaults.printServiceURL;
 
     xhr.open('POST', url);
     xhr.responseType = 'json';
@@ -234,8 +287,11 @@ function convertPageToPdf(options) {
 let snapper = {
     convertPageToPdf: convertPageToPdf,
     convertHtmlToPdf: convertHtmlToPdf,
+    convertUrlToPdf: convertUrlToPdf,
     getDocumentWithInlinedCanvases: getDocumentWithInlinedCanvases,
-    inlineCanvases: inlineCanvases
+    inlineCanvases: inlineCanvases,
+    version: version,
+    defaults: defaults
 };
 
 export default snapper;

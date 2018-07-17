@@ -14,7 +14,7 @@ import (
 // bad global variable, bad
 var chromeDebugUrl string
 
-func PdfHTMLHandler(w http.ResponseWriter, r *http.Request) {
+func PdfHandler(w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
 	var request snapper.Request
 	err := decoder.Decode(&request)
@@ -26,7 +26,17 @@ func PdfHTMLHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	data, err := snapper.PrintPdfFromHtml(chromeDebugUrl, *request.Html)
+	var data []byte
+	options := request.Options
+	if options == nil {
+		options = new(snapper.Options)
+	}
+	snapper.SetDefaultOptions(options)
+	if request.Html != nil {
+		data, err = snapper.PrintPdfFromHtml(chromeDebugUrl, options, *request.Html)
+	} else {
+		data, err = snapper.PrintPdfFromUrl(chromeDebugUrl, options, *request.Url)
+	}
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		log.Printf("Error generating PDF: %s\n", err)
@@ -45,19 +55,10 @@ func PdfHTMLHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write(json)
 }
 
-func HomeHandler(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusOK)
-	fmt.Fprintf(w, "Snapper!")
-}
-
 func launchHttpServer(port int) {
 	r := mux.NewRouter()
 
-	r.HandleFunc("/", HomeHandler)
-
-	s := r.PathPrefix("/pdf").Methods("POST").Subrouter()
-	s.HandleFunc("/html/", PdfHTMLHandler)
-
+	r.HandleFunc("/", PdfHandler)
 	http.Handle("/", r)
 
 	handler := cors.Default().Handler(r)

@@ -18,7 +18,7 @@ deploy-lambda: snapper.zip
 	python deploy.py
 
 update-lambda: snapper.zip
-	aws lambda update-function-code --function-name snapper-us-west-1-lambda-PdfPrinter-1DL19DSUOD7H0 --zip-file fileb://./assets/snapper.zip --region us-west-1
+	aws lambda update-function-code --function-name snapper-pdf-printer --zip-file fileb://./assets/snapper.zip --region us-east-1
 
 docker-image: bin/linux/pdfserver standalone.go src/snapper/pdfprinter.go src/snapper/chrome.go
 	cp bin/linux/pdfserver assets
