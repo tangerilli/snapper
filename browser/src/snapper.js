@@ -70,6 +70,18 @@ function inlineCanvases(doc, shadowDoc) {
     });
 }
 
+function removeScriptTags(doc) {
+    const scripts = doc.getElementsByTagName('script');
+    const stableScriptList = [...scripts];
+
+    stableScriptList.forEach((script, index) => {
+        const parent = script.parentNode;
+
+        parent.removeChild(script);
+    });
+    return doc;
+}
+
 function inlineCssBlobs(doc) {
     // Replace blobs with inline CSS (this is mainly useful in a development environment
     // using webpack)
@@ -135,9 +147,14 @@ function inlineCssBlobs(doc) {
     return blobPromise;
 }
 
-function getDocumentWithInlinedCanvases() {
+function getShadowDoc() {
     const parser = new DOMParser();
-    const shadowDoc = parser.parseFromString(document.documentElement.innerHTML, 'text/html');
+
+    return parser.parseFromString(document.documentElement.innerHTML, 'text/html');
+}
+
+function getDocumentWithInlinedCanvases() {
+    const shadowDoc = getShadowDoc();
 
     inlineCanvases(document, shadowDoc);
     return shadowDoc;
@@ -253,9 +270,10 @@ options = {
         filename: 'page.pdf',
         successCallback: function() {}
     },
-    printServiceURL: 'http://localhost:8088/pdf/html/',
+    printServiceURL: 'http://localhost:8088/',
     inlineCanvas: true,
-    inlineBlobs: true,
+    inlineBlobs: false,
+    removeScripts: false,
     preprocessor: function(html) { return html; }
 }
 */
@@ -264,11 +282,19 @@ function convertPageToPdf(options) {
     // first inlines some stuff on the page, then turns the entire page into a PDF
     const shouldInlineCanvas = options.inlineCanvas !== false;
     const shouldInlineBlobs = options.inlineBlobs === true;
+    const shouldRemoveScripts = options.removeScripts === true;
     const preprocessor = options.preprocessor || ((html) => { return html; });
     let shadowDoc = document;
 
     if (shouldInlineCanvas) {
         shadowDoc = getDocumentWithInlinedCanvases();
+    }
+
+    if (shouldRemoveScripts) {
+        if (shadowDoc === document) {
+            shadowDoc = getShadowDoc();
+        }
+        shadowDoc = removeScriptTags(shadowDoc);
     }
 
     if (shouldInlineBlobs) {
@@ -291,6 +317,7 @@ let snapper = {
     getDocumentWithInlinedCanvases: getDocumentWithInlinedCanvases,
     inlineCanvases: inlineCanvases,
     inlineCssBlobs: inlineCssBlobs,
+    removeScriptTags: removeScriptTags,
     version: version,
     defaults: defaults
 };
