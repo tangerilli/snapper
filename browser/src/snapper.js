@@ -290,6 +290,7 @@ let snapper = {
     convertUrlToPdf: convertUrlToPdf,
     getDocumentWithInlinedCanvases: getDocumentWithInlinedCanvases,
     inlineCanvases: inlineCanvases,
+    inlineCssBlobs: inlineCssBlobs,
     version: version,
     defaults: defaults
 };
