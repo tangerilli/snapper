@@ -1,4 +1,5 @@
 import {version} from '../package.json';
+import encoding from 'text-encoding';
 
 let defaults = {
     printServiceURL: 'http://localhost:8088/'
@@ -16,22 +17,29 @@ function decodeAndSaveBase64Pdf(base64Data, filename, successCallback, errorCall
     const byteArray = new Uint8Array(byteNumbers);
     const blob = new Blob([byteArray], {type: 'image/pdf'});
 
-    // Create a link element, hide it, direct
-    // it towards the blob, and then 'click' it programatically
-    const a = document.createElement('a');
+    if (navigator.msSaveOrOpenBlob) {
+        navigator.msSaveOrOpenBlob(blob, filename);
+    } else {
+        // Create a link element, hide it, direct
+        // it towards the blob, and then 'click' it programatically
+        const a = document.createElement('a');
 
-    a.style = 'display: none';
-    document.body.appendChild(a);
-    // Create a DOMString representing the blob
-    // and point the link element towards it
-    const url = window.URL.createObjectURL(blob);
+        a.style.display = 'none';
+        document.body.appendChild(a);
+        // Create a DOMString representing the blob
+        // and point the link element towards it
+        const url = window.URL.createObjectURL(blob);
 
-    a.href = url;
-    a.download = filename;
-    // programatically click the link to trigger the download
-    a.click();
-    // release the reference to the file by revoking the Object URL
-    window.URL.revokeObjectURL(url);
+        a.href = url;
+        a.download = filename;
+
+        // programatically click the link to trigger the download
+        a.click();
+
+        // release the reference to the file by revoking the Object URL
+        window.URL.revokeObjectURL(url);
+    }
+
     if (successCallback !== undefined) {
         successCallback();
     }
@@ -100,7 +108,7 @@ function inlineCssBlobs(doc) {
                 const reader = new FileReader();
 
                 reader.addEventListener('loadend', function () {
-                    const decoder = new TextDecoder('utf-8');
+                    const decoder = new encoding.TextDecoder('utf-8');
                     const result = decoder.decode(reader.result);
                     const inlineCss = doc.createElement('style');
 
@@ -165,7 +173,11 @@ function printToPdf(url, params, options) {
 
     xhr.onload = function (e) {
         if (this.status === 200) {
-            const response = this.response;
+            let response = this.response;
+
+            if (typeof response === 'string') {
+                response = JSON.parse(response);
+            }
 
             if (options.base64DataCallback !== undefined) {
                 options.base64DataCallback(response.pdfData);
@@ -222,7 +234,11 @@ function convertHtmlToPdf(html, options) {
 
     xhr.onload = function (e) {
         if (this.status === 200) {
-            const response = this.response;
+            let response = this.response;
+
+            if (typeof response === 'string') {
+                response = JSON.parse(response);
+            }
 
             if (options.base64DataCallback !== undefined) {
                 options.base64DataCallback(response.pdfData);

@@ -1,6 +1,6 @@
 {
   "name": "pdf-snapper",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "A library for creating PDFs of web pages",
   "main": "lib/snapper.min.js",
   "scripts": {
@@ -20,6 +20,7 @@
     "eslint": "3.19.0",
     "eslint-loader": "1.7.1",
     "mocha": "3.3.0",
+    "text-encoding": "^0.6.4",
     "webpack": "3.1.0",
     "yargs": "7.1.0"
   },
