@@ -6,12 +6,13 @@ package snapper
 import (
 	"context"
 	"encoding/base64"
+	"log"
+	"time"
+
 	"github.com/mafredri/cdp"
 	"github.com/mafredri/cdp/devtool"
 	"github.com/mafredri/cdp/protocol/page"
 	"github.com/mafredri/cdp/rpcc"
-	"log"
-	"time"
 )
 
 func connectToChrome(chromeUrl string, ctx context.Context, maxDataSize int) (*rpcc.Conn, error) {
@@ -33,7 +34,7 @@ func connectToChrome(chromeUrl string, ctx context.Context, maxDataSize int) (*r
 }
 
 func connectToChromeWithRetries(chromeUrl string, ctx context.Context, maxDataSize int) (*rpcc.Conn, error) {
-	retries := 5
+	retries := 10
 	sleepTimeInMs := 100
 
 	var conn *rpcc.Conn
@@ -46,11 +47,11 @@ func connectToChromeWithRetries(chromeUrl string, ctx context.Context, maxDataSi
 		}
 
 		if retries == 0 {
-			log.Println("Error connecting to chrome")
+			log.Printf("Error connecting to chrome: %s", err)
 			return nil, err
 		}
 
-		log.Printf("Error connecting to chrome, sleeping for %dms\n", sleepTimeInMs)
+		log.Printf("Error connecting to chrome (sleeping for %dms): %s", sleepTimeInMs, err)
 		time.Sleep(time.Duration(sleepTimeInMs) * time.Millisecond)
 
 		retries--
@@ -88,13 +89,13 @@ func runCommandsInChrome(chromeUrl string, maxDataSize int, options *Options, co
 
 	domContent, err := c.Page.LoadEventFired(ctx)
 	if err != nil {
-		log.Println("Error setting up DOM content event handler")
+		log.Printf("Error setting up DOM content event handler: %s", err)
 		return nil, err
 	}
 	defer domContent.Close()
 
 	if err = c.Page.Enable(ctx); err != nil {
-		log.Println("Error enabling page events")
+		log.Printf("Error enabling page events: %s", err)
 		return nil, err
 	}
 
@@ -108,7 +109,7 @@ func generatePdf(chromeUrl string, maxDataSize int, options *Options, pageSetupF
 		pdfArgs := setupPdfArgs()
 		result, err := c.Page.PrintToPDF(ctx, pdfArgs)
 		if err != nil {
-			log.Println("Error calling PrintToPDF: ", err)
+			log.Printf("Error calling PrintToPDF: %s", err)
 			return nil, err
 		}
 
@@ -130,24 +131,24 @@ func PrintPdfFromHtml(chromeUrl string, options *Options, html string) ([]byte, 
 		navArgs := page.NewNavigateArgs("about:blank")
 		nav, err := c.Page.Navigate(ctx, navArgs)
 		if err != nil {
-			log.Println("Error navigating to blank page")
+			log.Printf("Error navigating to blank page: %s", err)
 			return nil, err
 		}
 
 		if _, err = domContent.Recv(); err != nil {
-			log.Println("Error waiting for navigation")
+			log.Printf("Error waiting for navigation: %s", err)
 			return nil, err
 		}
 
 		contentArgs := page.NewSetDocumentContentArgs(nav.FrameID, html)
 		err = c.Page.SetDocumentContent(ctx, contentArgs)
 		if err != nil {
-			log.Println("Error setting document content: ", err)
+			log.Printf("Error setting document content: %s", err)
 			return nil, err
 		}
 
 		if _, err = domContent.Recv(); err != nil {
-			log.Println("Error waiting for content to be set")
+			log.Printf("Error waiting for content to be set: %s", err)
 			return nil, err
 		}
 		return nil, nil
@@ -159,12 +160,12 @@ func PrintPdfFromUrl(chromeUrl string, options *Options, url string) ([]byte, er
 		navArgs := page.NewNavigateArgs(url)
 		_, err := c.Page.Navigate(ctx, navArgs)
 		if err != nil {
-			log.Println("Error navigating to page")
+			log.Printf("Error navigating to page: %s", err)
 			return nil, err
 		}
 
 		if _, err = domContent.Recv(); err != nil {
-			log.Println("Error waiting for navigation")
+			log.Printf("Error waiting for navigation: %s", err)
 			return nil, err
 		}
 

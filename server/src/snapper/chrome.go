@@ -17,7 +17,7 @@ func LaunchChrome(path *string) (*exec.Cmd, error) {
 			var err error
 			chromePath, err = filepath.Abs("./headless-chrome/headless_shell")
 			if err != nil {
-				log.Printf("Could not resolve chrome path: %s\n", err)
+				log.Printf("Could not resolve chrome path: %s", err)
 				return nil, err
 			}
 			args = append(args, "--window-size=1280x1696", "--no-sandbox", "--user-data-dir=/tmp/user-data",
@@ -27,12 +27,12 @@ func LaunchChrome(path *string) (*exec.Cmd, error) {
 	} else {
 		chromePath = *path
 	}
-	log.Printf("Launching %s %s\n", chromePath, args)
+	log.Printf("Launching %s %s", chromePath, args)
 	cmd := exec.Command(chromePath, args...)
 
 	err := cmd.Start()
 	if err != nil {
-		log.Printf("Error starting chrome: %s\n", err)
+		log.Printf("Error starting chrome: %s", err)
 		return nil, err
 	}
 

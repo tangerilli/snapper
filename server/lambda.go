@@ -2,23 +2,42 @@ package main
 
 import (
 	"errors"
-	"github.com/aws/aws-lambda-go/lambda"
 	"log"
 	"snapper"
+
+	"github.com/aws/aws-lambda-go/lambda"
 )
 
 var (
 	// ErrNameNotProvided is thrown when a name is not provided
 	ErrNameNotProvided = errors.New("no content was provided in the HTTP body")
+
+	InvocationCounter = 0
 )
 
 func Handler(request snapper.Request) (snapper.Response, error) {
-	log.Println("Received PDF generation request")
-	_, err := snapper.LaunchChrome(nil)
-	if err != nil {
-		log.Printf("Error launching chrome: %s", err)
-		return snapper.Response{""}, err
+	InvocationCounter++
+	log.Printf("Received PDF generation request v2, invocations: %d", InvocationCounter)
+
+	var err error
+
+	if InvocationCounter == 1 {
+		_, err = snapper.LaunchChrome(nil)
+		if err != nil {
+			log.Printf("Error launching chrome: %s", err)
+			return snapper.Response{""}, err
+		}
+
+		/*
+			defer func() {
+				log.Println("Killing chrome process")
+				if err := cmd.Process.Kill(); err != nil {
+					log.Printf("Error killing chrome process: %s", err)
+				}
+			}()
+		*/
 	}
+
 	chromeDebugUrl := "http://localhost:9222"
 
 	var data []byte
@@ -33,7 +52,7 @@ func Handler(request snapper.Request) (snapper.Response, error) {
 		data, err = snapper.PrintPdfFromUrl(chromeDebugUrl, options, *request.Url)
 	}
 	if err != nil {
-		log.Println("Error generating PDF")
+		log.Printf("Error generating PDF: %s", err)
 		return snapper.Response{""}, err
 	}
 	return snapper.Response{string(data)}, nil
